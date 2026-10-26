@@ -23,10 +23,14 @@ def read_wav(path):
 def tts(i, speaker, text):
     voice, pitch, speed, filt = VOICES[speaker]
     raw, out = f"{OUT}/raw_{i:02d}.wav", f"{OUT}/line_{i:02d}.wav"
-    subprocess.run(["espeak-ng", "-v", voice, "-p", str(pitch), "-s", str(speed), "-w", raw, text], check=True)
+    subprocess.run(["RHVoice-test", "-p", voice, "-t", str(pitch), "-r", str(speed), "-o", raw],
+                   input=text.encode(), check=True)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw,
-                    "-af", f"aresample={SR},{filt},silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
-                           "silenceremove=start_periods=1:start_threshold=-50dB,areverse",
+                    "-af", f"aresample={SR},highpass=f=70,{filt},"
+                           "silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
+                           "silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
+                           "acompressor=threshold=-20dB:ratio=3:attack=5:release=80,"
+                           "loudnorm=I=-15:TP=-1.5:LRA=7,aresample=" + str(SR),
                     "-ac", "1", out], check=True)
     return read_wav(out)
 
@@ -120,7 +124,7 @@ voice = voice[: int(SR * TOTAL)]
 # duck the music under the voice
 act = np.convolve((np.abs(voice) > 0.02).astype(float), np.ones(SR // 5) / (SR // 5), mode="same")
 act = np.clip(act * 4, 0, 1)
-music_gain = 0.22 - 0.13 * act
+music_gain = 0.13 - 0.10 * act
 
 
 # ---------- SFX ----------

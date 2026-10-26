@@ -1,13 +1,13 @@
 """Scenes, lines and voices for «McDenis Tarasis и Великий Броненосец»."""
 
-# espeak-ng voice settings per speaker: (voice, pitch, speed, ffmpeg filter)
+# RHVoice settings per speaker: (voice, pitch %, rate %, extra ffmpeg filter)
 VOICES = {
-    "narrator": ("ru+m3", 38, 148, "highpass=f=90,lowpass=f=6500,aecho=0.8:0.5:35:0.18,volume=1.6"),
-    "hero": ("ru+m1", 28, 158, "highpass=f=80,lowpass=f=7000,volume=1.7"),
-    "tumbleweed": ("ru+m4", 85, 175, "highpass=f=200,volume=1.5"),
-    "cactus": ("ru+m2", 8, 128, "lowpass=f=5000,volume=1.8"),
-    "snake": ("ru+f3", 62, 128, "highpass=f=150,aecho=0.7:0.4:60:0.25,volume=1.5"),
-    "crowd": ("ru+m5", 90, 160, "aecho=0.8:0.6:30|55:0.3|0.25,volume=1.4"),
+    "narrator": ("aleksandr-hq", 95, 92, "aecho=0.8:0.5:30:0.08"),
+    "hero": ("yuriy", 90, 100, "anull"),
+    "tumbleweed": ("artemiy", 140, 112, "anull"),
+    "cactus": ("vitaliy", 75, 85, "anull"),
+    "snake": ("victoria", 105, 85, "aecho=0.7:0.4:50:0.15"),
+    "crowd": ("evgeniy-rus", 130, 105, "aecho=0.8:0.6:30|55:0.3|0.25"),
 }
 
 # (speaker, spoken text for TTS, subtitle text)
