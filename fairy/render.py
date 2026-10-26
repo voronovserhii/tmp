@@ -28,6 +28,7 @@ LINES = TL["lines"]
 
 print("building pieces…", flush=True)
 hero = C.Hero()
+Hero = C.Hero
 ARM = C.armadillo(ribs=True)
 ARM_HAT = C.armadillo(hat=True)
 TUMBLE = C.tumbleweed()
@@ -41,6 +42,9 @@ GRILL = C.grill()
 PUFF = C.smoke_puff()
 RIBS = C.ribs()
 COW = C.cow_head()
+CORN = C.corn()
+HEART = C.heart()
+BUBBLE = C.thought_bubble(C.ribs())
 NEIGH = [C.neighbor((60, 120, 170), (200, 180, 140)), C.neighbor((220, 170, 60), (90, 60, 30)),
          C.neighbor((120, 160, 90), (240, 236, 220), skin=(170, 120, 90))]
 TITLE = C.banner("McDenis Tarasis", "и Великий Броненосец", 980, 330, F_TITLE, F_TITLE_S)
@@ -144,8 +148,8 @@ def sc_ranch(cv, T, t, d):
     sway = math.sin(t * 2.4) * 3
     P = hero.render("closed", prop="banjo", strum=math.sin(t * 16) * 9, legs=(0, -6 * abs(math.sin(t * 4.4))))
     C.place_puppet(cv, P, 640, 1560, 0.95, sway)
-    if t < 3.4:
-        y = 260 - 700 * ease((t - 2.6) / 0.8) + (1 - ease(t / 0.6)) * -400
+    if t < 2.8:
+        y = 260 - 700 * ease((t - 2.0) / 0.8) + (1 - ease(t / 0.6)) * -400
         put_c(cv, TITLE, 540, y)
 
 
@@ -327,16 +331,77 @@ def sc_party(cv, T, t, d):
     C.place_puppet(cv, P, 470, 1560 - b * 25, 0.8, dance * 5)
 
 
+def hand_pos(x_feet, y_feet, s, arm_angle, right=True):
+    sx = (Hero.PW / 2 + (168 if right else -168)) - Hero.PW / 2
+    a = math.radians(arm_angle)
+    hx = sx + 270 * math.sin(a)
+    hy = 525 + 270 * math.cos(a) - 1250
+    return x_feet + hx * s, y_feet + hy * s
+
+
+def sc_veggie(cv, T, t, d):
+    cv.alpha_composite(BG["party"])
+    ls = lines_of("veggie")
+    t1 = ls[1]["start"] - SCENE_START["veggie"]
+    t2 = ls[2]["start"] - SCENE_START["veggie"] - 0.2
+    dr = ImageDraw.Draw(cv)
+    for k in range(14):
+        x = 40 + k * 76
+        y = 660 + 40 * math.sin(k / 13 * math.pi)
+        dr.ellipse([x - 12, y - 12, x + 12, y + 12], fill=(255, 230, 120))
+    talk = talking("hero", T)
+    if t < t2:
+        # the realisation
+        put(cv, NEIGH[0], 40, 1080, 0.8)
+        put(cv, NEIGH[1], 830, 1080, 0.8)
+        C.draw_armadillo(cv, ARM_HAT, 600, 1270, t, run=0.0, s=0.6)
+        shock = t > t1 - 0.4
+        shake = math.sin(t * 40) * 6 if shock else 0
+        arms = (-150, 150) if shock else (-10, 10)
+        face = ("tilt_open" if talk else "tilt") if shock else "closed"
+        P = hero.render(face, arms=arms, hat_dy=-40 if shock else 0)
+        C.place_puppet(cv, P, 470 + shake, 1560, 0.85)
+        if t > t1 - 1.2:
+            k = ease((t - (t1 - 1.2)) / 0.4)
+            dr = ImageDraw.Draw(cv)
+            f = F_TITLE
+            dr.text((200 + 4, 420 + 4), "!", font=f, fill=(60, 20, 10))
+            dr.text((200, 420), "!", font=f, fill=(200, 30, 30))
+            dr.text((250 + 4, 400 + 4), "!", font=f, fill=(60, 20, 10))
+            dr.text((250, 400), "!", font=f, fill=(200, 30, 30))
+            put_c(cv, BUBBLE, 790, 300, 0.4 + 0.6 * k)
+    else:
+        tt = t - t2
+        # grilling corn, the armadillo gets the brisket
+        put(cv, GRILL, 470, 1170, 0.8)
+        for k in range(3):
+            put_rot(cv, CORN, (80, 30), (540 + k * 60, 1215), 80, 0.6)
+        for k in range(5):
+            age = (tt * 0.5 + k / 5) % 1
+            put_c(cv, PUFF, 560 + math.sin(age * 8 + k) * 30, 1180 - age * 400, 0.5 + age * 0.8)
+        arm_r = 55 + math.sin(t * 5) * 10
+        P = hero.render("open" if talk else "closed", arms=(-10, arm_r))
+        C.place_puppet(cv, P, 260, 1560, 0.8, math.sin(t * 2) * 2)
+        hx, hy = hand_pos(260, 1560, 0.8, arm_r)
+        put_rot(cv, CORN, (80, 30), (hx, hy), 30 + math.sin(t * 5) * 10, 0.85)
+        bob = abs(math.sin(t * 6)) * 12
+        C.draw_armadillo(cv, ARM_HAT, 720, 1300 - bob, t, run=0.0, s=0.6, flip=True)
+        put_rot(cv, RIBS, (100, 45), (760, 1405 - bob), 10, 0.7)
+        for k in range(4):
+            age = (tt * 0.6 + k / 4) % 1
+            put_c(cv, HEART, 820 + math.sin(age * 6 + k) * 40, 1290 - age * 360, 0.4 + 0.3 * (1 - age))
+
+
 def sc_moral(cv, T, t, d):
     cv.alpha_composite(BG["moral"])
     talk = talking("narrator", T) and False
-    end_t = d - 3.4
+    end_t = d - 2.9
     lift = ease((t - end_t) / 0.4) - ease((t - end_t - 1.6) / 0.4)
-    P = hero.render("tilt", arms=(-8, 40 + 100 * lift), hat_dy=-110 * lift, hat_angle=-14 * lift)
+    P = hero.render("tilt", arms=(-8, 40 + 100 * lift), hat_dy=-40 * lift, hat_angle=-14 * lift)
     C.place_puppet(cv, P, 540, 1600, 1.05, math.sin(t * 1.8) * 2)
     if t > end_t:
         k = ease((t - end_t) / 0.6)
-        put_c(cv, THE_END, 540, -200 + 520 * k)
+        put_c(cv, THE_END, 540, -200 + 370 * k)
         r = np.random.default_rng(2)
         cols = list(STAR_SP)
         for j in range(26):
@@ -347,7 +412,7 @@ def sc_moral(cv, T, t, d):
 
 
 SCENE_FN = {"ranch": sc_ranch, "night": sc_night, "truck": sc_truck, "tumbleweed": sc_tumbleweed,
-            "cactus": sc_cactus, "snake": sc_snake, "canyon": sc_canyon, "party": sc_party, "moral": sc_moral}
+            "cactus": sc_cactus, "snake": sc_snake, "canyon": sc_canyon, "party": sc_party, "veggie": sc_veggie, "moral": sc_moral}
 
 
 def render_scene(idx, T):
@@ -369,7 +434,7 @@ def frame(T):
         ImageDraw.Draw(m).polygon(star_pts(W / 2, H / 2 - 200, 60 + k * 2000, rot=-90 + k * 70), fill=255)
         cv = Image.composite(cv, prev, m)
     line = active_line(T)
-    if line and T > 3.2:
+    if line and T > 2.5:
         subtitle(cv, line)
     return cv.convert("RGB")
 
@@ -382,7 +447,8 @@ def main():
                  "03_night": SCENE_START["night"] + 6.8, "04_truck": SCENE_START["truck"] + 3.5,
                  "05_cactus": SCENE_START["cactus"] + 1.5, "05b_tumble": SCENE_START["tumbleweed"] + 3.0, "03b_night_run": SCENE_START["night"] + 2.5, "06_snake": SCENE_START["snake"] + 2.0,
                  "07_canyon": SCENE_START["canyon"] + 6.0, "08_party": SCENE_START["party"] + 2.2,
-                 "09_end": TOTAL - 1.0}
+                 "09_end": TOTAL - 1.0, "08b_veggie_shock": SCENE_START["veggie"] + 6.0,
+                 "08c_veggie_corn": SCENE_START["veggie"] + 11.0}
         for name, T in picks.items():
             frame(T).save(f"../output/keyframes/{name}.png")
             print("saved", name, flush=True)

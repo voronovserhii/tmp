@@ -637,3 +637,38 @@ FONT_SIGN_S = None
 def set_fonts(big, small):
     global FONT_SIGN, FONT_SIGN_S
     FONT_SIGN, FONT_SIGN_S = big, small
+
+
+def corn():
+    def f(d, L):
+        d.polygon([(0, 30), (60, 0), (90, 20), (40, 40)], fill=(110, 160, 70))
+        d.polygon([(0, 30), (60, 60), (90, 44), (40, 22)], fill=(90, 140, 60))
+        d.ellipse([50, 6, 260, 56], fill=(246, 200, 60))
+        for x in range(64, 250, 16):
+            for y in (16, 30, 42):
+                d.ellipse([x, y - 4, x + 10, y + 4], fill=(250, 220, 110))
+    return cut(262, 62, f, edge=1)
+
+
+def heart():
+    def f(d, L):
+        d.ellipse([0, 0, 50, 50], fill=(220, 40, 60))
+        d.ellipse([40, 0, 90, 50], fill=(220, 40, 60))
+        d.polygon([(4, 34), (86, 34), (45, 84)], fill=(220, 40, 60))
+    return cut(90, 86, f, rough=0.15)
+
+
+def thought_bubble(ribs_sp):
+    def f(d, L):
+        d.ellipse([60, 0, 440, 260], fill=CREAM)
+        d.ellipse([20, 60, 180, 220], fill=CREAM)
+        d.ellipse([320, 50, 480, 230], fill=CREAM)
+        d.ellipse([10, 270, 70, 330], fill=CREAM)
+        d.ellipse([-0 + 0, 340, 34, 374], fill=CREAM)
+    b = cut(490, 380, f, edge=2)
+    put_c(b.img, ribs_sp, b.pad + 250, b.pad + 130, 1.2)
+    dd = ImageDraw.Draw(b.img)
+    o = b.pad
+    dd.line([(o + 140, o + 50), (o + 360, o + 210)], fill=(210, 30, 30), width=22)
+    dd.line([(o + 360, o + 50), (o + 140, o + 210)], fill=(210, 30, 30), width=22)
+    return b
