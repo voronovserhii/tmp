@@ -4,3 +4,4 @@ fairy/face_landmarker.task
 fairy/frames/
 fairy/audio/
 output/
+__pycache__/
